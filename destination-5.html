@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7-Eleven</title>
+
+    <style>
+        body {
+            cursor: url("cursor.png") 0 0, auto;
+        }
+
+        button:hover,
+        a:hover {
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+        
+        .beacon:hover {
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+
+        .beacon.unavailable:hover {
+            cursor: url("cursor.png") 0 0, auto;
+        }
+
+        body {
+            margin: 0;
+            background: black;
+        }
+
+        .ship-screen {
+            container-type: inline-size;
+
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ship-background {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .ready-text {
+            position: absolute;
+
+            left: 39.53%;
+            top: 0%;
+            width: 16.867%;
+
+            height: auto;
+            animation: ready-blink 1s steps(1, end) infinite;
+        }
+
+        @keyframes ready-blink {
+            0%, 49% {
+                content: url("ready-white.png");
+            }
+
+            50%, 100% {
+                content: url("ready-yellow.png");
+            }
+        }
+
+        .jump-button {
+            position: absolute;
+            left: 41.7%;
+            top: 4.6875%;
+            width: 5.86%;
+            height: 4.167%;
+
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+    
+        .map-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 9999;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(0, 0, 0, 0.65);
+        }
+
+        .map-overlay.open {
+            display: flex;
+        }
+
+        .map-panel {
+            position: relative;
+            width: 100%;
+        }
+
+        .map-image {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .route-lines {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+
+            opacity: 0;
+            pointer-events: none;
+        }
+        .route-lines.current-route {
+            opacity: 1;
+        }
+        
+        .star-glow {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .star-glow.current-glow {
+            opacity: 0;
+        }
+
+        .map-ship-orbit {
+            position: absolute;
+            width: 10%;
+            aspect-ratio: 1;
+
+            z-index: 5;
+            pointer-events: none;
+            animation: ship-orbit 8s linear infinite;
+        }
+
+        .map-ship-orbit img {
+            position: absolute;
+            width: 169.1%;
+            height: auto;
+
+            left: 80%;
+            top: 45%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes ship-orbit {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(-360deg); }
+        }
+
+        .beacon {
+            position: absolute;
+            width: 3%;
+            aspect-ratio: 1;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .beacon img {
+            display: block;
+            position: absolute;
+
+            width: 563.67%;
+            height: auto;
+
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .beacon[data-star="1"] { left: 37.92%; top: 50%; }
+        .beacon[data-star="2"] { left: 46.26647%; top: 32.03125%; }
+        .beacon[data-star="3"] { left: 53.147877%; top: 43.61979%; }
+        .beacon[data-star="4"] { left: 43.55%; top: 67.578125%; }
+        .beacon[data-star="5"] { left: 58.931%; top: 72.786%; }
+        .beacon[data-star="6"] { left: 70.058565%; top: 52.4739583%; }
+        .beacon[data-star="7"] { left: 76.866764%; top: 32.9427%; }
+
+        .map-exit-button {
+            position: absolute;
+
+            left: 73.1332%;
+            top: 86.71875%;
+            width: 9.736456808%;
+            height: 4.296875%;
+
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .beacon.unavailable {
+            cursor: default;
+        }
+
+        
+        .alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: auto;
+            transform: translate(-50%, -50%);
+
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            z-index:1;
+        }
+
+        .alert.show {
+            opacity: 1;
+        }
+
+        .message-box {
+            position: absolute;
+            top: 23.7%;
+            left: 27.45%;
+            right: 27.45%;
+            font-family: "Box Font", sans-serif;
+            font-size: clamp(8px, 1.25cqw, 16px);
+            line-height: 1.4;
+            color: white;
+            text-align: left;
+            z-index: 2;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            box-sizing: border-box;
+        }
+
+        .message-box.show {
+            opacity: 1;
+        }
+
+        #next-button {
+            display: none;
+            margin-top: 12px;
+        }
+
+        @font-face {
+            font-family: "Box Font";
+            src: url("ST01R.TTF") format("truetype");
+        }
+
+        .continue-link {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .continue-link:hover {
+            color: yellow;
+        }
+    </style>
+</head>
+
+<body data-current-star="5">
+    <div class="ship-screen">
+        <img
+            src="7-eleven.png"
+            class="ship-background"
+            alt="Ship screen"
+        >
+
+        <img
+            src="ready-white.png"
+            class="ready-text"
+            alt="Ready"
+        >
+
+        <button
+            class="jump-button"
+            aria-label="Open beacon map"
+            title="Open beacon map"
+        ></button>
+
+        
+    <!-- map -->
+    <div class="map-overlay" id="mapOverlay">
+        <div class="map-panel">
+
+            <img src="map.png" alt="Beacon map" class="map-image">
+
+            <img src="lines-1.png" class="route-lines" id="lines-1" alt="">
+            <img src="lines-2.png" class="route-lines" id="lines-2" alt="">
+            <img src="lines-3.png" class="route-lines" id="lines-3" alt="">
+            <img src="lines-4.png" class="route-lines" id="lines-4" alt="">
+            <img src="lines-5.png" class="route-lines" id="lines-5" alt="">
+            <img src="lines-6.png" class="route-lines" id="lines-6" alt="">
+            <img src="lines-7.png" class="route-lines" id="lines-7" alt="">
+
+            
+            <img src="glow-1.png" class="star-glow" id="glow-1" alt="">
+            <img src="glow-2.png" class="star-glow" id="glow-2" alt="">
+            <img src="glow-3.png" class="star-glow" id="glow-3" alt="">
+            <img src="glow-4.png" class="star-glow" id="glow-4" alt="">
+            <img src="glow-5.png" class="star-glow" id="glow-5" alt="">
+            <img src="glow-6.png" class="star-glow" id="glow-6" alt="">
+            <img src="glow-7.png" class="star-glow" id="glow-7" alt="">
+
+            
+            <div class="map-ship-orbit" id="mapShipOrbit">
+                <img src="map-ship.png" alt="Your ship">
+            </div>
+
+            <starting>
+            <button class="beacon start-beacon" data-star="1"
+                    aria-label="Starting beacon">
+                <img src="star-blue.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="2" aria-label="Beacon 2">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="3" aria-label="Beacon 3">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="4" aria-label="Beacon 4">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="5" aria-label="Beacon 5">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="6" aria-label="Beacon 6">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="7" aria-label="Beacon 7">
+                <img src="star-yellow.png" alt="">
+            </button>
+            
+            <button
+                class="map-exit-button"
+                id="mapExitButton"
+                aria-label="Close map"
+            ></button>
+        </div>
+    </div>
+
+        <!-- alert image -->
+    <img
+        class="alert"
+        id="birthday-alert"
+        src="alert.png"
+        alt="Birthday alert"
+    >
+
+    <!-- popup text -->
+    <div class="message-box" id="message-box">
+
+        
+    <div id="message-content">
+        You spot a nearby ship and a planet. You receive new transmissions.
+        <br><br>
+
+        <a href="#" class="continue-link" id="prologue-choice">
+            1. Continue...
+        </a>
+    </div>
+
+        <a href="#" class="continue-link" id="next-button"
+        style="display: none;">
+            1. Next...
+        </a>
+        <br>
+        <a href="#" class="continue-link" id="previous-button" 
+        style="display:none;">
+            2. Previous...
+        </a>
+
+        <br>
+        
+        <a href="#" class="continue-link" id="close-button"
+        style="display: none;">
+            3. Close and continue...
+        </a>
+    </div>
+    </div>
+    </div>
+
+    <audio id="sector-music" src="sector-music.mp3" autoplay loop></audio>
+
+    <script>
+        const jumpButton = document.querySelector(".jump-button");
+        const mapOverlay = document.getElementById("mapOverlay");
+        const mapPanel = document.querySelector(".map-panel");
+
+        // map
+        jumpButton.addEventListener("click", () => {
+            mapOverlay.classList.add("open");
+
+            requestAnimationFrame(() => {
+                positionShipOrbit();
+            });
+        });
+
+        const mapExitButton = document.getElementById("mapExitButton");
+
+        mapExitButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            mapOverlay.classList.remove("open");
+        });
+
+        const connections = {
+            1: [2, 3, 4],
+            2: [1, 3],
+            3: [1, 2, 4, 5],
+            4: [1, 3, 5],
+            5: [3, 4, 6],
+            6: [5, 7],
+            7: [6]
+        };
+
+        const currentStar = Number(document.body.dataset.currentStar);
+        const visitableStars = connections[currentStar] || [];
+        
+        const currentBeacon = document.querySelector(
+            '.beacon[data-star="' + currentStar + '"]'
+        );
+
+        const mapShipOrbit = document.getElementById("mapShipOrbit");
+
+        function positionShipOrbit() {
+            if (!currentBeacon || !mapShipOrbit) return;
+
+            const beaconRect = currentBeacon.getBoundingClientRect();
+            const mapRect = mapPanel.getBoundingClientRect();
+
+            if (mapRect.width === 0 || mapRect.height === 0) return;
+
+            const x =
+                ((beaconRect.left + beaconRect.width / 2 - mapRect.left)
+                / mapRect.width) * 100;
+
+            const y =
+                ((beaconRect.top + beaconRect.height / 2 - mapRect.top)
+                / mapRect.height) * 100;
+
+            mapShipOrbit.style.left = (x-1) + "%";
+            mapShipOrbit.style.top = (y-1) + "%";
+            mapShipOrbit.style.marginLeft = "-5%";
+            mapShipOrbit.style.marginTop = "-5%";
+        }
+
+        // stars
+        document.querySelectorAll(".beacon").forEach((beacon) => {
+            const starNumber = Number(beacon.dataset.star);
+            const starImage = beacon.querySelector("img");
+            const routeImage = document.getElementById("lines-" + starNumber);
+            const glowImage = document.getElementById("glow-" + starNumber);
+
+            if (!visitableStars.includes(starNumber)) {
+                beacon.classList.add("unavailable");
+            } else {
+                beacon.classList.remove("unavailable");
+            }
+
+            if (starNumber === currentStar && routeImage) {
+                routeImage.classList.add("current-route");
+            }
+
+            if (
+                starNumber === 1 ||
+                localStorage.getItem("beacon-" + starNumber) === "visited"
+            ) {
+                starImage.src = "star-blue.png";
+                beacon.removeAttribute("title");
+            } else {
+                beacon.title = "An unvisited location.";
+            }
+
+            
+            beacon.addEventListener("mouseenter", () => {
+                if (routeImage) {
+                    routeImage.style.opacity = "1";
+                }
+
+                if (glowImage) {
+                    glowImage.style.opacity =
+                        starNumber !== currentStar &&
+                        visitableStars.includes(starNumber)
+                            ? "1"
+                            : "0";
+                }
+            });
+
+            beacon.addEventListener("mouseleave", () => {
+                if (routeImage) {
+                    routeImage.style.opacity =
+                        starNumber === currentStar ? "1" : "0";
+                }
+
+                if (glowImage) {
+                    glowImage.style.opacity = "0";
+                }
+            });
+
+            // visit
+            beacon.addEventListener("click", (event) => {
+                event.stopPropagation();
+
+                if (!visitableStars.includes(starNumber)) {
+                    return;
+                }
+
+                localStorage.setItem("beacon-" + starNumber, "visited");
+                starImage.src = "star-blue.png";
+                beacon.removeAttribute("title");
+
+                mapOverlay.classList.remove("open");
+
+                window.location.href = starNumber === 1
+                    ? "start.html"
+                    : "destination-" + starNumber + ".html";
+            });
+        });
+
+        
+        const alertBox = document.getElementById("birthday-alert");
+        const messageBox = document.getElementById("message-box");
+        const messageContent = document.getElementById("message-content");
+        const nextButton = document.getElementById("next-button");
+        const previousButton = document.getElementById("previous-button");
+        const closeButton = document.getElementById("close-button");
+
+        const transmissions = [
+            [
+                "happy birthday king i hope your face won't be long much this year\n\ni miss you so much girl let's hang out sometime i miss your where my hug at\n\ni hope you win your debates master debater\n\nwith full of love,\npringles",
+                "happiest birthday jaeden!\n\ni know school borders have been difficult to cross so we don’t get to meet as often, but i think that just makes your efforts all the more sweeter! you never fail to light up a room with your humor and energy, and i always laugh on our galas.\n\nthank you so much for being there on my first day ever in ateneo, and continuing to show up for us. your sincerity and efforts are always so evident, and i am so lucky to be your friend.",
+                "goodluck on your debate bossing! i know you’d do great. say hi to leni for me broski 😎\n\ncheers,\nLJ",
+                "hi jaegoat. Happy happy brithday!!\n\nI remember first meeting you in Bonchon, still wearing masks and all of is barely talking to each other. You were just there making jokes and being the funny person you are, really just broke the ice for all of us. And then just like that, its been more than a year since we first met each other. I am forever grateful for how you have been ever so present in my life and for being there for everyone in the group. Loveu so muxh Jaedy mwamwa balik ka admu soon hehe\n\n— Eddie",
+                "happy birthday, jaeden! :))\n\ni know we don’t talk as much as we used to, and i don’t hear from you as often anymore, but whenever i do, i’m always reminded of what a genuinely good person you are. i think that’s something really special about you, and something i hope you never lose no matter how much life changes or wherever it takes you.i hope you continue to stay true to yourself and hold on to the things that make you who you are, because the world could always use more people like you. wishing you so much happiness, love, and good things this year and always. i hope life",
+                "treats you well, jaeden. you deserve it!! enjoy your day\n\n— Aki",
+                "hi jaeden !!! happy happy HAPPY BIRTHDAY !!!! 🤍🤍🤍\n\nno way we’re the same age AHAHAHAH welcome to official unc status ig. crazy how around 8 months ago, during my 20th birthday, your post made me absolutely bawl my eyes out. it made me feel so loved to the point that it was the only greeting i posted. till this day, it holds so so so much special meaning to me.\n\nnow, it’s my turn to do the same AHAHAHAHAH or at least, attempt to do the same. i hope i can (?) i know that you don’t cry easily, and you don’t get emotional over these things.",
+                "there are only approximately around 3 people i would trust my life with, people who i would jump off a cliff for. and to your luck, you’re one of them. i’m not joking when i say this by the way. something bad happens to me ? i tell you. something juicy happening in my life ? i tell you. it takes me a lot to open my heart because i’ve kept it closed for so long, but opening up to you always feels so easy.\n\napart from being one of the people i would die for, there are also around 3 people who i believe have the purest, most beautiful souls in the world. once again, u’re one of them. you’re the funniest, most charming, kindest, most personable person i’ve",
+                "met. i never ever have a dull moment with you, and every time we go out, i never want it to end. you’re one of the most special people i’ve met in my lifetime.\n\nfor your 20th, i wish you all the blessings in the world, and for every single dream you have to come true. we have a long way to go, but i wish that it only gets better for you from here on out. i wish that all the love in the world is given to you. and multiply that by infinity.",
+                "we’re always here for you, and we always love you, Jaeden.\n\nLove,\nMoira"
+            ]
+        ];
+
+        const prologue = [
+            {
+                text: "You see they're from the ship's crew.",
+                choice: "1. Continue..."
+            }
+        ];
+
+        let currentTransmission = [];
+        let currentMessage = 0;
+        let hasReachedEnd = false;
+        let currentPrologueStep = -1;
+
+        setTimeout(() => {
+            alertBox.classList.add("show");
+            messageBox.classList.add("show");
+        }, 1000);
+
+        
+        const prologueChoice = document.getElementById("prologue-choice");
+
+        prologueChoice.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            currentPrologueStep++;
+
+            if (currentPrologueStep < prologue.length) {
+                const scene = prologue[currentPrologueStep];
+
+                messageContent.innerHTML =
+                    scene.text.replace(/\n/g, "<br>") +
+                    "<br><br>" +
+                    '<a href="#" class="continue-link" id="prologue-choice">' +
+                    scene.choice +
+                    "</a>";
+
+                // Reconnect the newly created choice
+                document.getElementById("prologue-choice")
+                    .addEventListener("click", handlePrologueChoice);
+
+            } else {
+                // Prologue finished: begin the friend messages
+                currentTransmission = transmissions[0];
+                currentMessage = 0;
+                hasReachedEnd = false;
+
+                showMessage();
+            }
+        });
+
+        function handlePrologueChoice(event) {
+            event.preventDefault();
+
+            currentPrologueStep++;
+
+            if (currentPrologueStep < prologue.length) {
+                const scene = prologue[currentPrologueStep];
+
+                messageContent.innerHTML =
+                    scene.text.replace(/\n/g, "<br>") +
+                    "<br><br>" +
+                    '<a href="#" class="continue-link" id="prologue-choice">' +
+                    scene.choice +
+                    "</a>";
+
+                document.getElementById("prologue-choice")
+                    .addEventListener("click", handlePrologueChoice);
+            } else {
+                currentTransmission = transmissions[0];
+                currentMessage = 0;
+                hasReachedEnd = false;
+
+                showMessage();
+            }
+        }
+
+        document.querySelectorAll(".continue-link[data-message]").forEach((choice) => {
+            choice.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                const index = Number(choice.dataset.message);
+                currentTransmission = transmissions[index];
+                currentMessage = 0;
+
+                showMessage();
+            });
+        });
+
+        
+        function showMessage() {
+            messageContent.innerHTML = currentTransmission[currentMessage]
+                .replace(/\n/g, "<br>");
+
+            nextButton.style.display = "inline-block";
+            previousButton.style.display =
+                currentMessage > 0 ? "inline-block" : "none";
+
+            closeButton.style.display =
+                hasReachedEnd ? "inline-block" : "none";
+
+            nextButton.textContent = "1. Next...";
+            previousButton.textContent = "2. Previous...";
+
+            if (currentMessage === 0) {
+                closeButton.textContent = "2. Close and continue...";
+            } else {
+                closeButton.textContent = "3. Close and continue...";
+            }
+
+            previousButton.nextElementSibling.style.display =
+                currentMessage > 0 ? "block" : "none";
+        }
+
+        nextButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            if (currentMessage < currentTransmission.length - 1) {
+                currentMessage++;
+                showMessage();
+            } else {
+                hasReachedEnd = true;
+                messageContent.textContent = "END OF TRANSMISSION.";
+
+                nextButton.style.display = "none";
+                previousButton.style.display = "inline-block";
+                previousButton.textContent = "1. Previous...";
+
+                closeButton.style.display = "inline-block";
+                closeButton.textContent = "2. Close and continue...";
+            }
+        });
+
+        previousButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            if (messageContent.textContent === "END OF TRANSMISSION.") {
+                currentMessage = currentTransmission.length - 1;
+            } else if (currentMessage > 0) {
+                currentMessage--;
+            }
+
+            showMessage();
+        });
+
+        closeButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            alertBox.classList.remove("show");
+            messageBox.classList.remove("show");
+
+            closeButton.style.display = "none";
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Game</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            cursor: url("cursor.png") 0 0, auto;
+        }
+
+        button:hover,
+        a:hover{
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+
+        .game-screen {
+            container-type: inline-size;
+
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .background {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: auto;
+            transform: translate(-50%, -50%);
+
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        .alert.show {
+            opacity: 1;
+        }
+
+        .message-box {
+            position: absolute;
+            top: 23.7%;
+            left: 27.45%;
+            right: 27.45%;
+
+            
+            font-family: "Box Font", sans-serif;
+            font-size: clamp(8px, 1.25cqw, 16px);
+            line-height: 1.4;
+            color: white;
+
+            text-align: left;
+            z-index: 2;
+
+            margin: 0;
+            padding: 0;
+
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            box-sizing: border-box;
+        }
+
+        .message-box.show {
+            opacity: 1;
+        }
+
+        @font-face {
+            font-family: "Box Font";
+            src: url("ST01R.TTF") format("truetype");
+        }
+
+        .continue-link {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .continue-link:hover {
+            color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-screen">
+        <img
+            class="background"
+            src="new-game.png"
+            alt="Game screen"
+        >
+
+        
+    <div class="message-box">
+        ALERT: Happy birthday, Captain! Special game mode available.
+
+        <br><br>
+
+        <a href="start.html" class="continue-link">1. Continue...</a>
+
+        <br>
+
+        <a href="start.html" class="continue-link">2. Continue. 🐱</a>
+    </div>
+
+        <img
+            class="alert"
+            id="birthday-alert"
+            src="alert.png"
+            alt="Birthday alert"
+        >
+    </div>
+
+    <audio id="menu-music" src="menu-music.mp3" autoplay loop></audio>
+    
+    <script>
+        const alertBox = document.getElementById("birthday-alert");
+        const messageBox = document.querySelector(".message-box");
+
+        setTimeout(() => {
+            alertBox.classList.add("show");
+            messageBox.classList.add("show");
+        }, 3000);
+    </script>
+</body>
+</html>

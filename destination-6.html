@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Girls</title>
+
+    <style>
+        body {
+            cursor: url("cursor.png") 0 0, auto;
+        }
+
+        button:hover,
+        a:hover {
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+        
+        .beacon:hover {
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+
+        .beacon.unavailable:hover {
+            cursor: url("cursor.png") 0 0, auto;
+        }
+
+        body {
+            margin: 0;
+            background: black;
+        }
+
+        .ship-screen {
+            container-type: inline-size;
+
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ship-background {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .ready-text {
+            position: absolute;
+
+            left: 39.53%;
+            top: 0%;
+            width: 16.867%;
+
+            height: auto;
+            animation: ready-blink 1s steps(1, end) infinite;
+        }
+
+        @keyframes ready-blink {
+            0%, 49% {
+                content: url("ready-white.png");
+            }
+
+            50%, 100% {
+                content: url("ready-yellow.png");
+            }
+        }
+
+        .jump-button {
+            position: absolute;
+            left: 41.7%;
+            top: 4.6875%;
+            width: 5.86%;
+            height: 4.167%;
+
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+    
+        .map-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 9999;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(0, 0, 0, 0.65);
+        }
+
+        .map-overlay.open {
+            display: flex;
+        }
+
+        .map-panel {
+            position: relative;
+            width: 100%;
+        }
+
+        .map-image {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .route-lines {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+
+            opacity: 0;
+            pointer-events: none;
+        }
+        .route-lines.current-route {
+            opacity: 1;
+        }
+        
+        .star-glow {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .star-glow.current-glow {
+            opacity: 0;
+        }
+
+        .map-ship-orbit {
+            position: absolute;
+            width: 10%;
+            aspect-ratio: 1;
+
+            z-index: 5;
+            pointer-events: none;
+            animation: ship-orbit 8s linear infinite;
+        }
+
+        .map-ship-orbit img {
+            position: absolute;
+            width: 169.1%;
+            height: auto;
+
+            left: 80%;
+            top: 45%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes ship-orbit {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(-360deg); }
+        }
+
+        .beacon {
+            position: absolute;
+            width: 3%;
+            aspect-ratio: 1;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .beacon img {
+            display: block;
+            position: absolute;
+
+            width: 563.67%;
+            height: auto;
+
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .beacon[data-star="1"] { left: 37.92%; top: 50%; }
+        .beacon[data-star="2"] { left: 46.26647%; top: 32.03125%; }
+        .beacon[data-star="3"] { left: 53.147877%; top: 43.61979%; }
+        .beacon[data-star="4"] { left: 43.55%; top: 67.578125%; }
+        .beacon[data-star="5"] { left: 58.931%; top: 72.786%; }
+        .beacon[data-star="6"] { left: 70.058565%; top: 52.4739583%; }
+        .beacon[data-star="7"] { left: 76.866764%; top: 32.9427%; }
+
+        .map-exit-button {
+            position: absolute;
+
+            left: 73.1332%;
+            top: 86.71875%;
+            width: 9.736456808%;
+            height: 4.296875%;
+
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .beacon.unavailable {
+            cursor: default;
+        }
+
+        
+        .alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: auto;
+            transform: translate(-50%, -50%);
+
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            z-index:1;
+        }
+
+        .alert.show {
+            opacity: 1;
+        }
+
+        .message-box {
+            position: absolute;
+            top: 23.7%;
+            left: 27.45%;
+            right: 27.45%;
+            font-family: "Box Font", sans-serif;
+            font-size: clamp(8px, 1.25cqw, 16px);
+            line-height: 1.4;
+            color: white;
+            text-align: left;
+            z-index: 2;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            box-sizing: border-box;
+        }
+
+        .message-box.show {
+            opacity: 1;
+        }
+
+        #next-button {
+            display: none;
+            margin-top: 12px;
+        }
+
+        @font-face {
+            font-family: "Box Font";
+            src: url("ST01R.TTF") format("truetype");
+        }
+
+        .continue-link {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .continue-link:hover {
+            color: yellow;
+        }
+    </style>
+</head>
+
+<body data-current-star="6">
+    <div class="ship-screen">
+        <img
+            src="the-girls.png"
+            class="ship-background"
+            alt="Ship screen"
+        >
+
+        <img
+            src="ready-white.png"
+            class="ready-text"
+            alt="Ready"
+        >
+
+        <button
+            class="jump-button"
+            aria-label="Open beacon map"
+            title="Open beacon map"
+        ></button>
+
+        
+    <!-- map -->
+    <div class="map-overlay" id="mapOverlay">
+        <div class="map-panel">
+
+            <img src="map.png" alt="Beacon map" class="map-image">
+
+            <img src="lines-1.png" class="route-lines" id="lines-1" alt="">
+            <img src="lines-2.png" class="route-lines" id="lines-2" alt="">
+            <img src="lines-3.png" class="route-lines" id="lines-3" alt="">
+            <img src="lines-4.png" class="route-lines" id="lines-4" alt="">
+            <img src="lines-5.png" class="route-lines" id="lines-5" alt="">
+            <img src="lines-6.png" class="route-lines" id="lines-6" alt="">
+            <img src="lines-7.png" class="route-lines" id="lines-7" alt="">
+
+            
+            <img src="glow-1.png" class="star-glow" id="glow-1" alt="">
+            <img src="glow-2.png" class="star-glow" id="glow-2" alt="">
+            <img src="glow-3.png" class="star-glow" id="glow-3" alt="">
+            <img src="glow-4.png" class="star-glow" id="glow-4" alt="">
+            <img src="glow-5.png" class="star-glow" id="glow-5" alt="">
+            <img src="glow-6.png" class="star-glow" id="glow-6" alt="">
+            <img src="glow-7.png" class="star-glow" id="glow-7" alt="">
+
+            
+            <div class="map-ship-orbit" id="mapShipOrbit">
+                <img src="map-ship.png" alt="Your ship">
+            </div>
+
+            <starting>
+            <button class="beacon start-beacon" data-star="1"
+                    aria-label="Starting beacon">
+                <img src="star-blue.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="2" aria-label="Beacon 2">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="3" aria-label="Beacon 3">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="4" aria-label="Beacon 4">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="5" aria-label="Beacon 5">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="6" aria-label="Beacon 6">
+                <img src="star-yellow.png" alt="">
+            </button>
+
+            <button class="beacon" data-star="7" aria-label="Beacon 7">
+                <img src="star-yellow.png" alt="">
+            </button>
+            
+            <button
+                class="map-exit-button"
+                id="mapExitButton"
+                aria-label="Close map"
+            ></button>
+        </div>
+    </div>
+
+        <!-- alert image -->
+    <img
+        class="alert"
+        id="birthday-alert"
+        src="alert.png"
+        alt="Birthday alert"
+    >
+
+    <!-- popup text -->
+    <div class="message-box" id="message-box">
+
+        
+    <div id="message-content">
+        Soon after arriving in the system you are hailed by a small cruiser. "What good fortune that we happen to run into each other. Nothing personal, but you have some information we need!"
+        <br><br>
+
+        <a href="#" class="continue-link" id="prologue-choice">
+            1. Continue...
+        </a>
+    </div>
+
+        <a href="#" class="continue-link" id="next-button"
+        style="display: none;">
+            1. Next...
+        </a>
+        <br>
+        <a href="#" class="continue-link" id="previous-button" 
+        style="display:none;">
+            2. Previous...
+        </a>
+
+        <br>
+        
+        <a href="#" class="continue-link" id="close-button"
+        style="display: none;">
+            3. Close and continue...
+        </a>
+    </div>
+    </div>
+    </div>
+
+    <audio id="sector-music" src="sector-music.mp3" autoplay loop></audio>
+
+    <script>
+        const jumpButton = document.querySelector(".jump-button");
+        const mapOverlay = document.getElementById("mapOverlay");
+        const mapPanel = document.querySelector(".map-panel");
+
+        // map
+        jumpButton.addEventListener("click", () => {
+            mapOverlay.classList.add("open");
+
+            requestAnimationFrame(() => {
+                positionShipOrbit();
+            });
+        });
+
+        const mapExitButton = document.getElementById("mapExitButton");
+
+        mapExitButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            mapOverlay.classList.remove("open");
+        });
+
+        const connections = {
+            1: [2, 3, 4],
+            2: [1, 3],
+            3: [1, 2, 4, 5],
+            4: [1, 3, 5],
+            5: [3, 4, 6],
+            6: [5, 7],
+            7: [6]
+        };
+
+        const currentStar = Number(document.body.dataset.currentStar);
+        const visitableStars = connections[currentStar] || [];
+        
+        const currentBeacon = document.querySelector(
+            '.beacon[data-star="' + currentStar + '"]'
+        );
+
+        const mapShipOrbit = document.getElementById("mapShipOrbit");
+
+        function positionShipOrbit() {
+            if (!currentBeacon || !mapShipOrbit) return;
+
+            const beaconRect = currentBeacon.getBoundingClientRect();
+            const mapRect = mapPanel.getBoundingClientRect();
+
+            if (mapRect.width === 0 || mapRect.height === 0) return;
+
+            const x =
+                ((beaconRect.left + beaconRect.width / 2 - mapRect.left)
+                / mapRect.width) * 100;
+
+            const y =
+                ((beaconRect.top + beaconRect.height / 2 - mapRect.top)
+                / mapRect.height) * 100;
+
+            mapShipOrbit.style.left = (x-1) + "%";
+            mapShipOrbit.style.top = (y-1) + "%";
+            mapShipOrbit.style.marginLeft = "-5%";
+            mapShipOrbit.style.marginTop = "-5%";
+        }
+
+        // stars
+        document.querySelectorAll(".beacon").forEach((beacon) => {
+            const starNumber = Number(beacon.dataset.star);
+            const starImage = beacon.querySelector("img");
+            const routeImage = document.getElementById("lines-" + starNumber);
+            const glowImage = document.getElementById("glow-" + starNumber);
+
+            if (!visitableStars.includes(starNumber)) {
+                beacon.classList.add("unavailable");
+            } else {
+                beacon.classList.remove("unavailable");
+            }
+
+            if (starNumber === currentStar && routeImage) {
+                routeImage.classList.add("current-route");
+            }
+
+            if (
+                starNumber === 1 ||
+                localStorage.getItem("beacon-" + starNumber) === "visited"
+            ) {
+                starImage.src = "star-blue.png";
+                beacon.removeAttribute("title");
+            } else {
+                beacon.title = "An unvisited location.";
+            }
+
+            
+            beacon.addEventListener("mouseenter", () => {
+                if (routeImage) {
+                    routeImage.style.opacity = "1";
+                }
+
+                if (glowImage) {
+                    glowImage.style.opacity =
+                        starNumber !== currentStar &&
+                        visitableStars.includes(starNumber)
+                            ? "1"
+                            : "0";
+                }
+            });
+
+            beacon.addEventListener("mouseleave", () => {
+                if (routeImage) {
+                    routeImage.style.opacity =
+                        starNumber === currentStar ? "1" : "0";
+                }
+
+                if (glowImage) {
+                    glowImage.style.opacity = "0";
+                }
+            });
+
+            // visit
+            beacon.addEventListener("click", (event) => {
+                event.stopPropagation();
+
+                if (!visitableStars.includes(starNumber)) {
+                    return;
+                }
+
+                localStorage.setItem("beacon-" + starNumber, "visited");
+                starImage.src = "star-blue.png";
+                beacon.removeAttribute("title");
+
+                mapOverlay.classList.remove("open");
+
+                window.location.href = starNumber === 1
+                    ? "start.html"
+                    : "destination-" + starNumber + ".html";
+            });
+        });
+
+        
+        const alertBox = document.getElementById("birthday-alert");
+        const messageBox = document.getElementById("message-box");
+        const messageContent = document.getElementById("message-content");
+        const nextButton = document.getElementById("next-button");
+        const previousButton = document.getElementById("previous-button");
+        const closeButton = document.getElementById("close-button");
+
+        const transmissions = [
+            [
+                '"Dear Jaeden,\n\nhave u seen the new kagu chapter bro I LOVE YOU HOKAZONO"\n\n-mijey',
+                '"Happy birthday buddy, if I\'m being honest I\'m cramming this 2 hours before your birthday after a devastating City loss but that\'s how you know everything I say today comes from the heart!\n\nIn truth, I never really felt like we were especially connected before I left Pisay if that makes sense? Maybe you disagree (as it may be partially fueled by the deletion of your old Messenger account and unrecoverability of any messages that would\'ve lead me to remember stuff when backreading) but my assessment has always been that we were on some level of acquaintancy and obviously, but we weren\'t incredibly close d\’you know what I',
+                'mean? When I think of memories and conversations that we had, all of the ones that stand out come mostly from after my tenure there had ended. I don\'t really know where I\'m going with this but I guess what I wanted to emphasize was that I am really thankful that we are still friends and that the physical separation ultimately led to a deeper bond between the both of us. The months of dunking on you for the Kyra crush were hilarious, some incredibly bright spots in a really dark time for me. I can\'t begin to imagine how much worse I would\'ve been if you weren\'t so open with The Girls about your escapades, they really were often the highlights of my day because of how ridiculous the topics of conversation often were. I hope that I\'m',
+                'not painting the picture that you\'re just the group punching bag to me btw, that\'s not at all my intention! You\'re a great conversationalist, incredibly intelligent, and I have always quite admired how passionate you can be. I really enjoy our discussions and your inability to leave me sad after any of our conversations, so much so that perhaps one day I will stop seeing you as Larptimus Prime!\n\nKidding obviously, I hope I didn\'t set off any hatred in there. Again, hope you\'re having all the fun in the world in Naga with your debating and wish you all the success. We love you a lot',
+                'and give Kyra insane props for setting this surprise up. Pretty insane 180° from being Emperor Palpatine am I right?"\n\n— Nico',
+                '"By the way, there\'s a letter for you."',
+                "from joey biggens:\n\nhey jaeden, it\'s me joey. wishing you a happy birthday all the way from BU. Now I know you didn\'t make it here to Brownhalla University, but from what I hear you are doing quite well with your life all the way over there in the Philippines.\n\nEven after all these years, I still remember the time you spent in Mammoth Fortress. Although short, you were able to get to know countless people and touch enough of their hearts for them to send you this many messages. People see how much you care",
+                "for them, and how you want to make them happy/laugh. You\'re always concerned for the well-being of others. And you try your best to be funny even though you\'re kinda autistic.\n\nYou\'re a good friend Jaeden, and nothing can negate that.\n\nKeep making people happy, Jaeden, like you have for the past 20 years, and have a happy birthday.\n\nIn the name of Jod, Joven, and the Joey Spirit,",
+                "Prof. Joey Biggens\nCollege of NSIG\n\nP.S si athena save mo raw ng leftover from celebration"
+            ]
+        ];
+
+        const prologue = [
+            {
+                text: '"Just kidding bro happy birthday."',
+                choice: "1. Continue..."
+            }
+        ];
+
+        let currentTransmission = [];
+        let currentMessage = 0;
+        let hasReachedEnd = false;
+        let currentPrologueStep = -1;
+
+        setTimeout(() => {
+            alertBox.classList.add("show");
+            messageBox.classList.add("show");
+        }, 1000);
+
+        
+        const prologueChoice = document.getElementById("prologue-choice");
+
+        prologueChoice.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            currentPrologueStep++;
+
+            if (currentPrologueStep < prologue.length) {
+                const scene = prologue[currentPrologueStep];
+
+                messageContent.innerHTML =
+                    scene.text.replace(/\n/g, "<br>") +
+                    "<br><br>" +
+                    '<a href="#" class="continue-link" id="prologue-choice">' +
+                    scene.choice +
+                    "</a>";
+
+                // Reconnect the newly created choice
+                document.getElementById("prologue-choice")
+                    .addEventListener("click", handlePrologueChoice);
+
+            } else {
+                // Prologue finished: begin the friend messages
+                currentTransmission = transmissions[0];
+                currentMessage = 0;
+                hasReachedEnd = false;
+
+                showMessage();
+            }
+        });
+
+        function handlePrologueChoice(event) {
+            event.preventDefault();
+
+            currentPrologueStep++;
+
+            if (currentPrologueStep < prologue.length) {
+                const scene = prologue[currentPrologueStep];
+
+                messageContent.innerHTML =
+                    scene.text.replace(/\n/g, "<br>") +
+                    "<br><br>" +
+                    '<a href="#" class="continue-link" id="prologue-choice">' +
+                    scene.choice +
+                    "</a>";
+
+                document.getElementById("prologue-choice")
+                    .addEventListener("click", handlePrologueChoice);
+            } else {
+                currentTransmission = transmissions[0];
+                currentMessage = 0;
+                hasReachedEnd = false;
+
+                showMessage();
+            }
+        }
+
+        document.querySelectorAll(".continue-link[data-message]").forEach((choice) => {
+            choice.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                const index = Number(choice.dataset.message);
+                currentTransmission = transmissions[index];
+                currentMessage = 0;
+
+                showMessage();
+            });
+        });
+
+        
+        function showMessage() {
+            messageContent.innerHTML = currentTransmission[currentMessage]
+                .replace(/\n/g, "<br>");
+
+            nextButton.style.display = "inline-block";
+            previousButton.style.display =
+                currentMessage > 0 ? "inline-block" : "none";
+
+            closeButton.style.display =
+                hasReachedEnd ? "inline-block" : "none";
+
+            nextButton.textContent = "1. Next...";
+            previousButton.textContent = "2. Previous...";
+
+            if (currentMessage === 0) {
+                closeButton.textContent = "2. Close and continue...";
+            } else {
+                closeButton.textContent = "3. Close and continue...";
+            }
+
+            previousButton.nextElementSibling.style.display =
+                currentMessage > 0 ? "block" : "none";
+        }
+
+        nextButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            if (currentMessage < currentTransmission.length - 1) {
+                currentMessage++;
+                showMessage();
+            } else {
+                hasReachedEnd = true;
+                messageContent.textContent = "You say thank you and continue on your way.";
+
+                nextButton.style.display = "none";
+                previousButton.style.display = "inline-block";
+                previousButton.textContent = "1. Previous...";
+
+                closeButton.style.display = "inline-block";
+                closeButton.textContent = "2. Close and continue...";
+            }
+        });
+
+        previousButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            if (messageContent.textContent === "You say thank you and continue on your way.") {
+                currentMessage = currentTransmission.length - 1;
+            } else if (currentMessage > 0) {
+                currentMessage--;
+            }
+
+            showMessage();
+        });
+
+        closeButton.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            alertBox.classList.remove("show");
+            messageBox.classList.remove("show");
+
+            closeButton.style.display = "none";
+        });
+    </script>
+</body>
+</html>

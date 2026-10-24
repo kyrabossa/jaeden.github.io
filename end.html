@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            cursor: url("cursor.png") 0 0, auto;
+        }
+
+        button:hover,
+        a:hover {
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+
+        .game-screen {
+            container-type: inline-size;
+
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            <a href="start.html" class="invisible-link"
+                aria-label="Main Menu"></a>
+        }
+
+        .background {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        
+        .invisible-link {
+            position: absolute;
+            top: 66.67%;
+            left: 44.95%;
+            right: 44.95%;
+            bottom: 29.69%;
+            cursor: url("cursor-hover.png") 0 0, pointer;
+        }
+
+        .message-box {
+            position: absolute;
+            top: 45%;
+            left: 39.5%;
+            right: 39.5%;
+
+            font-family: "Box Font", sans-serif;
+            font-size: clamp(8px, 1.25cqw, 16px);
+            line-height: 1.4;
+            color: white;
+
+            text-align: center;
+            z-index: 2;
+
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: "Box Font";
+            src: url("ST01R.TTF") format("truetype");
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-screen">
+        <img
+            class="background"
+            src="end.png"
+            alt="End screen"
+        >
+
+        <a href="index.html" class="invisible-link"
+            aria-label="Return to the main menu"></a>
+
+        <div class="message-box">
+            Thank you for playing, Jaeden. Happy birthday!
+        </div>
+    </div>
+
+    <audio id="end-music" src="end.mp3" autoplay loop></audio>
+</body>
+</html>

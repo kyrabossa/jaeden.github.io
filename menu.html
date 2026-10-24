@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="menu">
+
+        <img
+            class="background"
+            src="start-menu.png"
+            alt="HBD main menu"
+        >
+
+        <a class="new-game" href="new-game.html" aria-label="New Game">
+            <img src="new-game-yellow.png" alt="">
+        </a>
+
+        </div>
+
+    <audio id="menu-music" src="menu-music.mp3" autoplay loop></audio>
+    <audio id="hover-sound" src="hover-over.mp3" preload="auto"></audio>
+    <script>
+        const newGame = document.querySelector(".new-game");
+        const hoverSound = document.getElementById("hover-sound");
+
+        newGame.addEventListener("mouseenter", () => {
+            hoverSound.currentTime = 0;
+            hoverSound.play().catch(error => {
+                console.log("Couldn't play hover sound:", error);
+            });
+        });
+    </script>
+</body>
+</html>
